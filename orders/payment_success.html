@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-8">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
+            <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Payment Successful!</h1>
+        <p class="text-lg text-gray-600 mt-2">Thank you for your payment</p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- Payment Information -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900">Payment Details</h2>
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-600">Order Number</p>
+                    <p class="font-medium text-gray-900">#{{ order.order_number }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Payment Date</p>
+                    <p class="font-medium text-gray-900">{{ order.updated_at|date:"F d, Y g:i A" }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Payment Status</p>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Paid
+                    </span>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-600">Amount Paid</p>
+                    <p class="font-medium text-gray-900">${{ order.total_amount }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="px-6 py-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Subtotal:</span>
+                    <span class="text-gray-900">${{ order.subtotal }}</span>
+                </div>
+                {% if order.discount_amount > 0 %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Discount:</span>
+                        <span class="text-green-600">-${{ order.discount_amount }}</span>
+                    </div>
+                {% endif %}
+                {% if order.tax_amount > 0 %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax:</span>
+                        <span class="text-gray-900">${{ order.tax_amount }}</span>
+                    </div>
+                {% endif %}
+                {% if order.shipping_amount > 0 %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping:</span>
+                        <span class="text-gray-900">${{ order.shipping_amount }}</span>
+                    </div>
+                {% endif %}
+                <div class="border-t pt-2 flex justify-between font-medium text-lg">
+                    <span class="text-gray-900">Total:</span>
+                    <span class="text-gray-900">${{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="px-6 py-6 bg-gray-50">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">What's Next?</h3>
+            <div class="space-y-3 text-sm text-gray-600">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-6 w-6 rounded-full bg-green-100 text-green-600 text-xs font-medium">✓</div>
+                    </div>
+                    <p class="ml-3">Payment has been processed successfully</p>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">2</div>
+                    </div>
+                    <p class="ml-3">You'll receive an email confirmation shortly</p>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">3</div>
+                    </div>
+                    <p class="ml-3">Your order will be processed and shipped soon</p>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <div class="flex items-center justify-center h-6 w-6 rounded-full bg-blue-100 text-blue-600 text-xs font-medium">4</div>
+                    </div>
+                    <p class="ml-3">Track your order status in your account</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{% url 'orders:order_detail' order.order_number %}" 
+                   class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    View Order Details
+                </a>
+                <a href="{% url 'orders:track_order' order.order_number %}" 
+                   class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Track Order
+                </a>
+                <a href="{% url 'products:product_list' %}" 
+                   class="flex-1 inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipt Download -->
+    <div class="mt-6 text-center">
+        <button onclick="window.print()" 
+                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Print Receipt
+        </button>
+    </div>
+</div>
+{% endblock %}

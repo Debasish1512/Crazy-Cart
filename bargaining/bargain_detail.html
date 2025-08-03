@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load bargaining_extras %}
+
+{% block title %}Bargain Details - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    {% if request.user == bargain.buyer %}
+                        <a href="{% url 'bargaining:bargain_requests' %}" class="text-gray-400 hover:text-gray-500">
+                            My Bargain Requests
+                        </a>
+                    {% else %}
+                        <a href="{% url 'bargaining:received_bargains' %}" class="text-gray-400 hover:text-gray-500">
+                            Received Bargains
+                        </a>
+                    {% endif %}
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="ml-4 text-sm font-medium text-gray-900">Bargain Details</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Bargain Negotiation</h1>
+                    <p class="text-sm text-gray-600 mt-1">Started {{ bargain.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if bargain.status == 'accepted' %}bg-green-100 text-green-800
+                        {% elif bargain.status == 'completed' %}bg-blue-100 text-blue-800
+                        {% elif bargain.status == 'rejected' %}bg-red-100 text-red-800
+                        {% elif bargain.status == 'countered' %}bg-yellow-100 text-yellow-800
+                        {% elif bargain.status == 'expired' %}bg-gray-100 text-gray-800
+                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ bargain.get_status_display }}
+                    </span>
+                    {% if bargain.expires_at %}
+                        <span class="text-sm text-gray-500">
+                            Expires: {{ bargain.expires_at|date:"M d, Y g:i A" }}
+                            {% if bargain.is_expired %}
+                                <span class="text-red-600 font-medium">(Expired)</span>
+                            {% endif %}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="px-6 py-6 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Product Details</h2>
+            <div class="flex items-start space-x-4">
+                <div class="flex-shrink-0">
+                    {% if bargain.product.image %}
+                        <img class="h-24 w-24 rounded-lg object-cover" src="{{ bargain.product.image.url }}" alt="{{ bargain.product.name }}">
+                    {% else %}
+                        <div class="h-24 w-24 rounded-lg bg-gray-200 flex items-center justify-center">
+                            <svg class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-medium text-gray-900">
+                        <a href="{% url 'products:product_detail' bargain.product.slug %}" class="hover:text-blue-600">
+                            {{ bargain.product.name }}
+                        </a>
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">SKU: {{ bargain.product.sku }}</p>
+                    <p class="text-sm text-gray-500">Seller: {{ bargain.seller.username }}</p>
+                    <p class="text-sm text-gray-500">Buyer: {{ bargain.buyer.username }}</p>
+                    <p class="text-sm text-gray-500">Quantity: {{ bargain.quantity }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="px-6 py-6 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Price Negotiation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Original Price</p>
+                    <p class="text-2xl font-bold text-gray-900">৳{{ bargain.original_price }}</p>
+                    <p class="text-sm text-gray-500">Per item</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Initial Offer</p>
+                    <p class="text-2xl font-bold text-blue-600">৳{{ bargain.requested_price }}</p>
+                    <p class="text-sm text-green-600">{{ bargain.discount_percentage }}% off</p>
+                </div>
+                {% if bargain.current_offer and bargain.current_offer != bargain.requested_price %}
+                    <div class="bg-white p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Current Offer</p>
+                        <p class="text-2xl font-bold text-orange-600">৳{{ bargain.current_offer }}</p>
+                        <p class="text-sm text-gray-500">Latest negotiated price</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Total Calculation -->
+            <div class="mt-6 bg-white p-4 rounded-lg border-2 border-blue-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Amount</p>
+                        <p class="text-lg text-gray-500">৳{{ bargain.current_offer|default:bargain.requested_price }} × {{ bargain.quantity }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-bold text-blue-600">
+                            ৳{{ current_total }}
+                        </p>
+                        {% if savings > 0 %}
+                            <p class="text-sm text-green-600">
+                                Save ৳{{ savings }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conversation -->
+        <div class="px-6 py-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Conversation</h2>
+            <div class="space-y-4">
+                <!-- Initial Message -->
+                {% if bargain.message %}
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
+                                <span class="text-white text-sm font-medium">{{ bargain.buyer.username|first|upper }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="bg-blue-50 rounded-lg px-4 py-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-sm font-medium text-gray-900">{{ bargain.buyer.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ bargain.created_at|date:"M d, Y g:i A" }}</p>
+                                </div>
+                                <p class="text-sm text-gray-700">{{ bargain.message }}</p>
+                                <p class="text-sm text-blue-600 mt-1 font-medium">Offered: ৳{{ bargain.requested_price }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Messages -->
+                {% for message in messages %}
+                    <div class="flex items-start space-x-3 {% if message.sender == request.user %}flex-row-reverse space-x-reverse{% endif %}">
+                        <div class="flex-shrink-0">
+                            <div class="h-8 w-8 rounded-full {% if message.sender == bargain.buyer %}bg-blue-500{% else %}bg-green-500{% endif %} flex items-center justify-center">
+                                <span class="text-white text-sm font-medium">{{ message.sender.username|first|upper }}</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 max-w-xs lg:max-w-md">
+                            <div class="{% if message.sender == request.user %}bg-blue-50{% else %}bg-gray-50{% endif %} rounded-lg px-4 py-3">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-sm font-medium text-gray-900">{{ message.sender.username }}</p>
+                                    <p class="text-xs text-gray-500">{{ message.created_at|date:"M d, Y g:i A" }}</p>
+                                </div>
+                                <p class="text-sm text-gray-700">{{ message.message }}</p>
+                                {% if message.offered_price %}
+                                    <p class="text-sm {% if message.sender == bargain.buyer %}text-blue-600{% else %}text-green-600{% endif %} mt-1 font-medium">
+                                        {% if message.is_counter_offer %}Counter offer: {% else %}Offered: {% endif %}৳{{ message.offered_price }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        {% if bargain.status in 'pending,countered' and not bargain.is_expired %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                {% if request.user == bargain.seller %}
+                    <!-- Seller Actions -->
+                    {% if bargain.status == 'pending' %}
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="acceptBargain({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Accept Offer (৳{{ bargain.requested_price }})
+                            </button>
+                            <button onclick="showCounterOfferModal({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Counter Offer
+                            </button>
+                            <button onclick="rejectBargain({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Reject
+                            </button>
+                        </div>
+                    {% elif bargain.status == 'countered' %}
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="acceptCounterOffer({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Accept Latest Offer (৳{{ bargain.current_offer }})
+                            </button>
+                            <button onclick="showCounterOfferModal({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Counter Again
+                            </button>
+                            <button onclick="rejectBargain({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Reject Negotiation
+                            </button>
+                        </div>
+                    {% endif %}
+                {% elif request.user == bargain.buyer %}
+                    <!-- Buyer Actions -->
+                    {% if bargain.status == 'pending' %}
+                        <p class="text-sm text-blue-600">
+                            <svg class="inline h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                            </svg>
+                            Waiting for seller's response to your offer
+                        </p>
+                    {% elif bargain.status == 'countered' %}
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="acceptCounterOffer({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                Accept Counter Offer (৳{{ bargain.current_offer }})
+                            </button>
+                            <button onclick="showCounterOfferModal({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Counter Again
+                            </button>
+                            <button onclick="rejectBargain({{ bargain.id }})" 
+                                    class="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                Reject Negotiation
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% elif bargain.status == 'accepted' %}
+            <div class="px-6 py-4 bg-green-50 border-t border-gray-200">
+                {% if request.user == bargain.buyer %}
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <svg class="h-5 w-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-sm font-medium text-green-800">
+                                🎉 Congratulations! Your bargain was accepted.
+                            </p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border border-green-200">
+                            <p class="text-sm text-gray-700 mb-2">
+                                <strong>Agreed Price:</strong> ৳{{ bargain.current_offer|default:bargain.requested_price }} per item
+                            </p>
+                            <p class="text-sm text-gray-700 mb-3">
+                                <strong>Total Cost:</strong> ৳{{ bargain.current_offer|default:bargain.requested_price|floatformat:2 }} × {{ bargain.quantity }} = ৳{{ bargain.current_offer|default:bargain.requested_price|multiply:bargain.quantity|floatformat:2 }}
+                            </p>
+                            <a href="{% url 'cart:add_to_cart' %}?product_id={{ bargain.product.id }}&price={{ bargain.current_offer|default:bargain.requested_price }}&quantity={{ bargain.quantity }}&bargain_id={{ bargain.id }}" 
+                               class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0L4 5M7 13h10m-10 0L5.5 7M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6"></path>
+                                </svg>
+                                Add to Cart at Agreed Price
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="flex items-center">
+                        <svg class="h-5 w-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <p class="text-sm font-medium text-green-800">
+                            ✅ You accepted this bargain at ৳{{ bargain.current_offer|default:bargain.requested_price }}. The buyer can now add it to their cart.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        {% elif bargain.status == 'completed' %}
+            <div class="px-6 py-4 bg-blue-50 border-t border-gray-200">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-sm font-medium text-blue-800">
+                        🛍️ Bargain completed! The item has been added to the buyer's cart at the agreed price.
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Counter Offer Modal -->
+<div id="counterOfferModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Make Counter Offer</h3>
+            
+            <!-- Price Reference -->
+            <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm text-gray-600 space-y-1">
+                    <div class="flex justify-between">
+                        <span>Original Price:</span>
+                        <span class="font-medium">৳{{ bargain.original_price }}</span>
+                    </div>
+                    {% if bargain.current_offer and bargain.current_offer != bargain.requested_price %}
+                        <div class="flex justify-between">
+                            <span>Current Offer:</span>
+                            <span class="font-medium text-blue-600">৳{{ bargain.current_offer }}</span>
+                        </div>
+                    {% else %}
+                        <div class="flex justify-between">
+                            <span>Initial Offer:</span>
+                            <span class="font-medium text-blue-600">৳{{ bargain.requested_price }}</span>
+                        </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span>Quantity:</span>
+                        <span class="font-medium">{{ bargain.quantity }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <form id="counterOfferForm">
+                <div class="mb-4">
+                    <label for="counterPrice" class="block text-sm font-medium text-gray-700">Your Counter Offer (per item)</label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">৳</span>
+                        </div>
+                        <input type="number" step="0.01" id="counterPrice" name="counterPrice" required
+                               min="1" max="{{ bargain.original_price }}"
+                               class="block w-full pl-7 pr-12 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Enter your counter offer">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Total for {{ bargain.quantity }} items: ৳<span id="totalAmount">0.00</span>
+                    </p>
+                </div>
+                <div class="mb-4">
+                    <label for="counterMessage" class="block text-sm font-medium text-gray-700">Message</label>
+                    <textarea id="counterMessage" name="counterMessage" rows="3" required
+                              class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Explain your counter offer..."></textarea>
+                </div>
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            class="flex-1 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Send Counter Offer
+                    </button>
+                    <button type="button" onclick="hideCounterOfferModal()" 
+                            class="flex-1 inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Make bargain ID and quantity available to external JS
+    let currentBargainId = {{ bargain.id }};
+    let bargainQuantity = {{ bargain.quantity }};
+    let originalPrice = {{ bargain.original_price }};
+    let currentOffer = {{ bargain.current_offer|default:bargain.requested_price }};
+</script>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.order_number }} - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'orders:order_list' %}" class="text-gray-400 hover:text-gray-500">
+                        My Orders
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="ml-4 text-sm font-medium text-gray-900">Order #{{ order.order_number }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="bg-white shadow rounded-lg">
+        <!-- Order Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Order #{{ order.order_number }}</h1>
+                    <p class="text-sm text-gray-600">Placed on {{ order.created_at|date:"F d, Y at g:i A" }}</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                        {% elif order.status == 'shipped' %}bg-blue-100 text-blue-800
+                        {% elif order.status == 'processing' %}bg-yellow-100 text-yellow-800
+                        {% elif order.status == 'confirmed' %}bg-indigo-100 text-indigo-800
+                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if order.payment_status == 'paid' %}bg-green-100 text-green-800
+                        {% elif order.payment_status == 'failed' %}bg-red-100 text-red-800
+                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                        Payment {{ order.get_payment_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="px-6 py-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Order Items</h2>
+            <div class="space-y-4">
+                {% for item in order_items %}
+                    <div class="flex items-center space-x-4 py-4 border-b border-gray-200 last:border-b-0">
+                        <div class="flex-shrink-0">
+                            {% if item.product.image %}
+                                <img class="h-20 w-20 rounded-lg object-cover" src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                            {% else %}
+                                <div class="h-20 w-20 rounded-lg bg-gray-200 flex items-center justify-center">
+                                    <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm font-medium text-gray-900">
+                                <a href="{% url 'products:product_detail' item.product.slug %}" class="hover:text-blue-600">
+                                    {{ item.product.name }}
+                                </a>
+                            </h3>
+                            <p class="text-sm text-gray-500">Sold by: {{ item.seller.username }}</p>
+                            <p class="text-sm text-gray-500">SKU: {{ item.product.sku }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900">${{ item.price }} × {{ item.quantity }}</p>
+                            <p class="text-sm text-gray-500">Total: ${{ item.total_price }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Order Summary and Addresses -->
+        <div class="px-6 py-6 bg-gray-50">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Shipping Address -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Shipping Address</h3>
+                    <div class="text-sm text-gray-600">
+                        <p class="font-medium">{{ order.shipping_name }}</p>
+                        <p>{{ order.shipping_email }}</p>
+                        <p>{{ order.shipping_phone }}</p>
+                        <p class="mt-2">{{ order.shipping_address }}</p>
+                        <p>{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}</p>
+                        <p>{{ order.shipping_country }}</p>
+                    </div>
+                </div>
+
+                <!-- Billing Address -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Billing Address</h3>
+                    <div class="text-sm text-gray-600">
+                        <p class="font-medium">{{ order.billing_name }}</p>
+                        <p>{{ order.billing_email }}</p>
+                        <p>{{ order.billing_phone }}</p>
+                        <p class="mt-2">{{ order.billing_address }}</p>
+                        <p>{{ order.billing_city }}, {{ order.billing_state }} {{ order.billing_postal_code }}</p>
+                        <p>{{ order.billing_country }}</p>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Order Summary</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Subtotal:</span>
+                            <span class="text-gray-900">${{ order.subtotal }}</span>
+                        </div>
+                        {% if order.discount_amount > 0 %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Discount:</span>
+                                <span class="text-green-600">-${{ order.discount_amount }}</span>
+                            </div>
+                        {% endif %}
+                        {% if order.tax_amount > 0 %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tax:</span>
+                                <span class="text-gray-900">${{ order.tax_amount }}</span>
+                            </div>
+                        {% endif %}
+                        {% if order.shipping_amount > 0 %}
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Shipping:</span>
+                                <span class="text-gray-900">${{ order.shipping_amount }}</span>
+                            </div>
+                        {% endif %}
+                        <div class="border-t pt-2 flex justify-between font-medium">
+                            <span class="text-gray-900">Total:</span>
+                            <span class="text-gray-900">${{ order.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="flex space-x-3">
+                    {% if order.status != 'cancelled' and order.status != 'delivered' %}
+                        <a href="{% url 'orders:track_order' order.order_number %}" 
+                           class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Track Order
+                        </a>
+                    {% endif %}
+                    <button onclick="window.print()" 
+                            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Print Order
+                    </button>
+                </div>
+                
+                {% if order.status == 'pending' or order.status == 'confirmed' %}
+                    <button onclick="cancelOrder('{{ order.order_number }}')" 
+                            class="inline-flex items-center px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Cancel Order
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelOrder(orderNumber) {
+    showConfirmDialog('Are you sure you want to cancel this order?', () => {
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                         document.querySelector('[name=csrf-token]')?.content ||
+                         getCookie('csrftoken');
+        
+        fetch(`/orders/${orderNumber}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message || 'Order cancelled successfully', 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1500);
+            } else {
+                showAlert(data.message || 'Failed to cancel order', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Failed to cancel order', 'error');
+        });
+    });
+}
+
+// Helper function to get cookie value
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

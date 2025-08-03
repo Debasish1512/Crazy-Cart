@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ seller.first_name }} {{ seller.last_name }} - {{ seller_profile.business_name }} - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Seller Header -->
+    <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center space-y-6 md:space-y-0 md:space-x-8">
+            <!-- Seller Avatar -->
+            <div class="flex-shrink-0">
+                <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                    {% if seller.profile.avatar %}
+                        <img src="{{ seller.profile.avatar.url }}" alt="{{ seller.first_name }}" 
+                             class="w-24 h-24 rounded-full object-cover">
+                    {% else %}
+                        {{ seller.first_name.0|default:seller.username.0 }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Seller Info -->
+            <div class="flex-1">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ seller_profile.business_name }}</h1>
+                        <p class="text-xl text-gray-600 mb-2">{{ seller.first_name }} {{ seller.last_name }}</p>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <!-- Rating -->
+                            <div class="flex items-center">
+                                {% if seller_profile.rating > 0 %}
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= seller_profile.rating %}
+                                            <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% else %}
+                                            <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <span class="ml-2 text-sm text-gray-600">({{ seller_profile.rating|floatformat:1 }})</span>
+                                {% else %}
+                                    <span class="text-sm text-gray-500">No ratings yet</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Verification Badge -->
+                            {% if seller_profile.is_verified %}
+                                <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Verified Seller
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Member Since -->
+                        <p class="text-sm text-gray-600">
+                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                            </svg>
+                            Member since {{ seller.date_joined|date:"F Y" }}
+                        </p>
+                    </div>
+                    
+                    <!-- Seller Stats -->
+                    <div class="flex space-x-6 text-center">
+                        <div>
+                            <div class="text-2xl font-bold text-blue-600">{{ products.count }}</div>
+                            <div class="text-sm text-gray-600">Products</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-green-600">{{ seller_profile.total_sales }}</div>
+                            <div class="text-sm text-gray-600">Sales</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Business Description -->
+        {% if seller_profile.business_description %}
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <h3 class="text-lg font-semibold mb-3">About {{ seller_profile.business_name }}</h3>
+            <p class="text-gray-700">{{ seller_profile.business_description|linebreaks }}</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Products Section -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Products by {{ seller_profile.business_name }}</h2>
+            {% if products.count > 12 %}
+                <a href="{% url 'products:product_list' %}?seller={{ seller.username }}" 
+                   class="text-blue-600 hover:text-blue-800">View All Products →</a>
+            {% endif %}
+        </div>
+        
+        {% if products %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {% for product in products %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden product-card hover:shadow-lg transition-shadow">
+                    <!-- Product Image -->
+                    <div class="h-48 bg-gray-200 flex items-center justify-center">
+                        {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                 class="h-full w-full object-cover">
+                        {% else %}
+                            <div class="text-gray-400">
+                                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Product Info -->
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg mb-2">
+                            <a href="{% url 'products:product_detail' product.slug %}" 
+                               class="hover:text-blue-600">{{ product.name|truncatechars:50 }}</a>
+                        </h3>
+                        
+                        <p class="text-gray-600 text-sm mb-3">{{ product.description|truncatewords:12 }}</p>
+                        
+                        <!-- Price -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div>
+                                <span class="text-xl font-bold text-blue-600">{{ product.price }} BDT</span>
+                                {% if product.original_price and product.original_price > product.price %}
+                                    <span class="text-sm text-gray-500 line-through ml-2">{{ product.original_price }} BDT</span>
+                                {% endif %}
+                            </div>
+                            {% if product.allow_bargaining %}
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Bargainable</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Condition and Stock -->
+                        <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
+                            <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ product.get_condition_display }}</span>
+                            {% if product.is_in_stock %}
+                                <span class="text-green-600">In Stock</span>
+                            {% else %}
+                                <span class="text-red-600">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex space-x-2">
+                            {% if user.is_authenticated and user != product.seller and product.is_in_stock %}
+                                <button class="add-to-cart flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
+                                        data-product-id="{{ product.id }}">
+                                    Add to Cart
+                                </button>
+                                {% if product.allow_bargaining %}
+                                    <button class="bargain-button bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700"
+                                            data-product-id="{{ product.id }}" data-original-price="{{ product.price }}">
+                                        Offer
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'products:product_detail' product.slug %}" 
+                                   class="flex-1 bg-gray-600 text-white py-2 px-3 rounded text-sm text-center hover:bg-gray-700">
+                                    View Details
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Posted Date -->
+                        <p class="text-xs text-gray-500 mt-2">Posted {{ product.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12 bg-white rounded-lg shadow-md">
+                <div class="mb-4">
+                    <svg class="w-16 h-16 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No Products Yet</h3>
+                <p class="text-gray-500">{{ seller_profile.business_name }} hasn't listed any products yet.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Contact Section -->
+    {% if seller.profile %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% if seller.email %}
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                </svg>
+                <span class="text-gray-700">{{ seller.email }}</span>
+            </div>
+            {% endif %}
+            
+            {% if seller.phone_number %}
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                </svg>
+                <span class="text-gray-700">{{ seller.phone_number }}</span>
+            </div>
+            {% endif %}
+            
+            {% if seller.profile.website %}
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16 8 8 0 000-16zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd"></path>
+                </svg>
+                <a href="{{ seller.profile.website }}" target="_blank" class="text-blue-600 hover:underline">{{ seller.profile.website }}</a>
+            </div>
+            {% endif %}
+            
+            {% if seller.city and seller.state %}
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-gray-700">{{ seller.city }}, {{ seller.state }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add to cart functionality
+    const addToCartBtns = document.querySelectorAll('.add-to-cart');
+    addToCartBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            // Implement add to cart AJAX call
+            console.log('Add to cart clicked for product:', productId);
+        });
+    });
+    
+    // Bargain functionality
+    const bargainBtns = document.querySelectorAll('.bargain-button');
+    bargainBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const originalPrice = this.getAttribute('data-original-price');
+            // Implement bargain modal/form
+            console.log('Bargain clicked for product:', productId, 'original price:', originalPrice);
+        });
+    });
+});
+</script>
+{% endblock %}

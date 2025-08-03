@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Shopping Cart - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold mb-8">Shopping Cart</h1>
+    
+    {% if cart_items %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Cart Items -->
+            <div class="lg:col-span-2">
+                {% for item in cart_items %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-4 cart-item">
+                    <div class="flex items-center space-x-4">
+                        <!-- Product Image -->
+                        <div class="w-20 h-20 bg-gray-200 rounded flex items-center justify-center">
+                            {% if item.product.images.first %}
+                                <img src="{{ item.product.images.first.image.url }}" 
+                                     alt="{{ item.product.name }}" class="w-full h-full object-cover rounded">
+                            {% else %}
+                                <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="flex-1">
+                            <h3 class="font-semibold">
+                                <a href="{% url 'products:product_detail' item.product.slug %}" 
+                                   class="hover:text-blue-600">{{ item.product.name }}</a>
+                            </h3>
+                            <p class="text-gray-600 text-sm">Seller: {{ item.product.seller.username }}</p>
+                            <p class="text-gray-600 text-sm">{{ item.product.get_condition_display }}</p>
+                        </div>
+                        
+                        <!-- Quantity and Price -->
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <label class="text-sm">Qty:</label>
+                                <input type="number" min="1" max="{{ item.product.stock_quantity }}" 
+                                       value="{{ item.quantity }}" 
+                                       class="quantity-input w-16 p-1 border border-gray-300 rounded text-center"
+                                       data-cart-item-id="{{ item.id }}">
+                            </div>
+                            
+                            <div class="text-right">
+                                <p class="font-semibold">{{ item.price_at_time }} BDT each</p>
+                                <p class="text-lg font-bold text-blue-600">{{ item.total_price }} BDT</p>
+                            </div>
+                            
+                            <form method="POST" action="{% url 'cart:remove_from_cart' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Cart Actions -->
+                <div class="flex justify-between items-center mt-6">
+                    <a href="{% url 'products:product_list' %}" 
+                       class="text-blue-600 hover:text-blue-800">← Continue Shopping</a>
+                    
+                    <button type="button" class="clear-cart-btn text-red-600 hover:text-red-800" 
+                            data-clear-url="{% url 'cart:clear_cart' %}">
+                        Clear Cart
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Cart Summary -->
+            <div class="bg-white rounded-lg shadow-md p-6 h-fit">
+                <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between">
+                        <span>Items ({{ cart.total_items }}):</span>
+                        <span>{{ cart.subtotal }} BDT</span>
+                    </div>
+                    
+                    {% if cart.applied_discount %}
+                    <div class="flex justify-between text-green-600">
+                        <span>Discount ({{ cart.applied_discount.discount.code }}):</span>
+                        <span>-{{ cart.discount_amount|floatformat:2 }} BDT</span>
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    <div class="flex justify-between font-semibold text-lg">
+                        <span>Total:</span>
+                        <span class="text-blue-600">{{ cart.total_price }} BDT</span>
+                    </div>
+                </div>
+                
+                <!-- Discount Code -->
+                <div class="mb-4">
+                    <form method="POST" action="{% url 'cart:apply_discount' %}">
+                        {% csrf_token %}
+                        <div class="flex space-x-2">
+                            <input type="text" name="discount_code" placeholder="Discount code" 
+                                   class="flex-1 p-2 border border-gray-300 rounded">
+                            <button type="submit" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+                                Apply
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Checkout Button -->
+                <a href="{% url 'cart:checkout' %}" 
+                   class="w-full bg-blue-600 text-white py-3 rounded-lg text-center block font-semibold hover:bg-blue-700">
+                    Proceed to Checkout
+                </a>
+                
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">Your CrazyCart Balance: {{ user.crazycart_balance }} BDT</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m1.5 6h10m-10 0l-1.5 6"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-600 mb-4">Your cart is empty</h3>
+            <p class="text-gray-500 mb-6">Start shopping to add items to your cart.</p>
+            <a href="{% url 'products:product_list' %}" 
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                Start Shopping
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

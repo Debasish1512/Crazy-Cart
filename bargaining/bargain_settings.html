@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bargain Settings - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Bargain Settings</h1>
+        <p class="text-gray-600 mt-2">Configure your bargaining preferences and automation</p>
+    </div>
+
+    <form method="POST" class="space-y-8">
+        {% csrf_token %}
+        
+        <!-- Auto-Accept Settings -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Auto-Accept Settings</h2>
+                <p class="text-sm text-gray-600 mt-1">Automatically accept bargain requests that meet your criteria</p>
+            </div>
+            <div class="px-6 py-6">
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="enable_auto_accept" name="enable_auto_accept" type="checkbox" 
+                                   {% if settings.enable_auto_accept %}checked{% endif %}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="enable_auto_accept" class="font-medium text-gray-700">Enable Auto-Accept</label>
+                            <p class="text-gray-500">Automatically accept bargain requests that meet your threshold</p>
+                        </div>
+                    </div>
+                    
+                    <div id="auto_accept_threshold_container" class="{% if not settings.enable_auto_accept %}hidden{% endif %}">
+                        <label for="auto_accept_threshold" class="block text-sm font-medium text-gray-700">
+                            Auto-Accept Threshold
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   name="auto_accept_threshold" id="auto_accept_threshold"
+                                   value="{{ settings.auto_accept_threshold|default:'' }}"
+                                   class="block w-full pr-10 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="10.00">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Auto-accept bargains if the discount is less than this percentage. 
+                            For example, if set to 10%, bargains offering 5% discount will be auto-accepted.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Reject Settings -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Auto-Reject Settings</h2>
+                <p class="text-sm text-gray-600 mt-1">Automatically reject bargain requests that are too low</p>
+            </div>
+            <div class="px-6 py-6">
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="enable_auto_reject" name="enable_auto_reject" type="checkbox" 
+                                   {% if settings.enable_auto_reject %}checked{% endif %}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="enable_auto_reject" class="font-medium text-gray-700">Enable Auto-Reject</label>
+                            <p class="text-gray-500">Automatically reject bargain requests that are too low</p>
+                        </div>
+                    </div>
+                    
+                    <div id="auto_reject_threshold_container" class="{% if not settings.enable_auto_reject %}hidden{% endif %}">
+                        <label for="auto_reject_threshold" class="block text-sm font-medium text-gray-700">
+                            Auto-Reject Threshold
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   name="auto_reject_threshold" id="auto_reject_threshold"
+                                   value="{{ settings.auto_reject_threshold|default:'' }}"
+                                   class="block w-full pr-10 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="50.00">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Auto-reject bargains if the discount is more than this percentage. 
+                            For example, if set to 50%, bargains offering 60% discount will be auto-rejected.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Counter Settings -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Auto-Counter Settings</h2>
+                <p class="text-sm text-gray-600 mt-1">Automatically send counter offers based on your preferences</p>
+            </div>
+            <div class="px-6 py-6">
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="enable_auto_counter" name="enable_auto_counter" type="checkbox" 
+                                   {% if settings.enable_auto_counter %}checked{% endif %}
+                                   class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="enable_auto_counter" class="font-medium text-gray-700">Enable Auto-Counter</label>
+                            <p class="text-gray-500">Automatically send counter offers for bargains in the middle range</p>
+                        </div>
+                    </div>
+                    
+                    <div id="auto_counter_threshold_container" class="{% if not settings.enable_auto_counter %}hidden{% endif %}">
+                        <label for="counter_offer_percentage" class="block text-sm font-medium text-gray-700">
+                            Counter Offer Percentage
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <input type="number" step="0.01" min="0" max="100" 
+                                   name="counter_offer_percentage" id="counter_offer_percentage"
+                                   value="{{ settings.counter_offer_percentage|default:'' }}"
+                                   class="block w-full pr-10 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="25.00">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">%</span>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Automatically counter with this discount percentage. 
+                            For example, if set to 25%, you'll counter with 25% off your original price.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Response Time Settings -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Response Time Settings</h2>
+                <p class="text-sm text-gray-600 mt-1">Set default expiration times for bargain requests</p>
+            </div>
+            <div class="px-6 py-6">
+                <div>
+                    <label for="default_response_time_hours" class="block text-sm font-medium text-gray-700">
+                        Default Response Time
+                    </label>
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        <input type="number" min="1" max="168" 
+                               name="default_response_time_hours" id="default_response_time_hours"
+                               value="{{ settings.default_response_time_hours|default:24 }}"
+                               class="block w-full pr-16 border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">hours</span>
+                        </div>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-500">
+                        How long buyers have to respond to your counter offers (1-168 hours)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Preview -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-lg font-medium text-blue-900 mb-4">Settings Summary</h3>
+            <div class="space-y-2 text-sm text-blue-800">
+                <div id="summary_auto_accept" class="{% if not settings.enable_auto_accept %}hidden{% endif %}">
+                    ✓ Auto-accept bargains with discount ≤ <span id="summary_accept_threshold">{{ settings.auto_accept_threshold|default:'N/A' }}</span>%
+                </div>
+                <div id="summary_auto_reject" class="{% if not settings.enable_auto_reject %}hidden{% endif %}">
+                    ✗ Auto-reject bargains with discount > <span id="summary_reject_threshold">{{ settings.auto_reject_threshold|default:'N/A' }}</span>%
+                </div>
+                <div id="summary_auto_counter" class="{% if not settings.enable_auto_counter %}hidden{% endif %}">
+                    ↔ Auto-counter with <span id="summary_counter_percentage">{{ settings.counter_offer_percentage|default:'N/A' }}</span>% discount
+                </div>
+                <div>
+                    ⏱ Default response time: <span id="summary_response_time">{{ settings.default_response_time_hours|default:24 }}</span> hours
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="flex justify-end">
+            <button type="submit" 
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Save Settings
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Toggle visibility of threshold inputs based on checkbox state
+document.getElementById('enable_auto_accept').addEventListener('change', function() {
+    const container = document.getElementById('auto_accept_threshold_container');
+    const summary = document.getElementById('summary_auto_accept');
+    if (this.checked) {
+        container.classList.remove('hidden');
+        summary.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+        summary.classList.add('hidden');
+    }
+});
+
+document.getElementById('enable_auto_reject').addEventListener('change', function() {
+    const container = document.getElementById('auto_reject_threshold_container');
+    const summary = document.getElementById('summary_auto_reject');
+    if (this.checked) {
+        container.classList.remove('hidden');
+        summary.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+        summary.classList.add('hidden');
+    }
+});
+
+document.getElementById('enable_auto_counter').addEventListener('change', function() {
+    const container = document.getElementById('auto_counter_threshold_container');
+    const summary = document.getElementById('summary_auto_counter');
+    if (this.checked) {
+        container.classList.remove('hidden');
+        summary.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+        summary.classList.add('hidden');
+    }
+});
+
+// Update summary in real-time
+document.getElementById('auto_accept_threshold').addEventListener('input', function() {
+    document.getElementById('summary_accept_threshold').textContent = this.value || 'N/A';
+});
+
+document.getElementById('auto_reject_threshold').addEventListener('input', function() {
+    document.getElementById('summary_reject_threshold').textContent = this.value || 'N/A';
+});
+
+document.getElementById('counter_offer_percentage').addEventListener('input', function() {
+    document.getElementById('summary_counter_percentage').textContent = this.value || 'N/A';
+});
+
+document.getElementById('default_response_time_hours').addEventListener('input', function() {
+    document.getElementById('summary_response_time').textContent = this.value || '24';
+});
+
+// Validation to ensure thresholds make sense
+document.querySelector('form').addEventListener('submit', function(e) {
+    const autoAcceptEnabled = document.getElementById('enable_auto_accept').checked;
+    const autoRejectEnabled = document.getElementById('enable_auto_reject').checked;
+    
+    if (autoAcceptEnabled && autoRejectEnabled) {
+        const acceptThreshold = parseFloat(document.getElementById('auto_accept_threshold').value) || 0;
+        const rejectThreshold = parseFloat(document.getElementById('auto_reject_threshold').value) || 0;
+        
+        if (acceptThreshold >= rejectThreshold) {
+            e.preventDefault();
+            showAlert('Auto-accept threshold must be less than auto-reject threshold', 'error');
+            return;
+        }
+    }
+});
+</script>
+{% endblock %}

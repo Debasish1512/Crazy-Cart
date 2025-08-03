@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - CrazyCart{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hide search bar on login page */
+    nav .flex-1.max-w-lg.mx-8 {
+        display: none;
+    }
+    /* Adjust navigation spacing when search is hidden */
+    nav .flex.justify-between.items-center.h-16 {
+        justify-content: space-between;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-screen bg-blue-800">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full sm:w-96">
+        <h2 class="text-2xl font-semibold text-center text-blue-800 mb-6">Login to CrazyCart</h2>
+        
+        <!-- Login Form -->
+        <form method="POST">
+            {% csrf_token %}
+            
+            <!-- Username/Email -->
+            <div class="mb-4">
+                <label for="username" class="block text-gray-700 text-sm font-semibold">Username or Email</label>
+                <input type="text" id="username" name="username" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Enter your username or email" required>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-6">
+                <label for="password" class="block text-gray-700 text-sm font-semibold">Password</label>
+                <input type="password" id="password" name="password" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" placeholder="Enter your password" required>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600">Login</button>
+        </form>
+
+        <!-- Register Link -->
+        <div class="mt-4 text-center">
+            <p class="text-sm">Don't have an account? <a href="{% url 'accounts:signup' %}" class="text-blue-600 hover:underline">Sign Up</a></p>
+        </div>
+        
+        <!-- Forgot Password Link -->
+        <div class="mt-2 text-center">
+            <a href="#" class="text-sm text-gray-600 hover:underline">Forgot Password?</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

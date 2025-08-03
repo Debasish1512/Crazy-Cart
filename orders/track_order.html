@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Order #{{ order.order_number }} - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'orders:order_list' %}" class="text-gray-400 hover:text-gray-500">
+                        My Orders
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="flex-shrink-0 h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="ml-4 text-sm font-medium text-gray-900">Track Order #{{ order.order_number }}</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <!-- Order Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Track Order #{{ order.order_number }}</h1>
+                    <p class="text-sm text-gray-600">Placed on {{ order.created_at|date:"F d, Y" }}</p>
+                </div>
+                <div>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                        {% elif order.status == 'shipped' %}bg-blue-100 text-blue-800
+                        {% elif order.status == 'processing' %}bg-yellow-100 text-yellow-800
+                        {% elif order.status == 'confirmed' %}bg-indigo-100 text-indigo-800
+                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Progress -->
+        <div class="px-6 py-8">
+            <h2 class="text-lg font-medium text-gray-900 mb-6">Order Progress</h2>
+            
+            <div class="relative">
+                <!-- Progress Line -->
+                <div class="absolute left-4 top-4 h-full w-0.5 bg-gray-200" aria-hidden="true"></div>
+                
+                <ul class="space-y-6">
+                    <!-- Order Placed -->
+                    <li class="relative flex items-start">
+                        <span class="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center ring-8 ring-white">
+                            <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                        <div class="min-w-0 flex-1 ml-4">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-900">Order Placed</h3>
+                                <p class="text-sm text-gray-500">{{ order.created_at|date:"F d, Y g:i A" }}</p>
+                                <p class="text-sm text-gray-500">Your order has been received and is being processed.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Order Confirmed -->
+                    <li class="relative flex items-start">
+                        <span class="h-8 w-8 rounded-full {% if order.status != 'pending' %}bg-green-500{% else %}bg-gray-200{% endif %} flex items-center justify-center ring-8 ring-white">
+                            {% if order.status != 'pending' %}
+                                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% else %}
+                                <span class="h-3 w-3 bg-gray-400 rounded-full"></span>
+                            {% endif %}
+                        </span>
+                        <div class="min-w-0 flex-1 ml-4">
+                            <div>
+                                <h3 class="text-sm font-medium {% if order.status != 'pending' %}text-gray-900{% else %}text-gray-500{% endif %}">Order Confirmed</h3>
+                                {% if order.status != 'pending' %}
+                                    <p class="text-sm text-gray-500">{{ order.updated_at|date:"F d, Y g:i A" }}</p>
+                                    <p class="text-sm text-gray-500">Your order has been confirmed and is being prepared.</p>
+                                {% else %}
+                                    <p class="text-sm text-gray-500">Waiting for confirmation</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Processing -->
+                    <li class="relative flex items-start">
+                        <span class="h-8 w-8 rounded-full {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}bg-green-500{% else %}bg-gray-200{% endif %} flex items-center justify-center ring-8 ring-white">
+                            {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% else %}
+                                <span class="h-3 w-3 bg-gray-400 rounded-full"></span>
+                            {% endif %}
+                        </span>
+                        <div class="min-w-0 flex-1 ml-4">
+                            <div>
+                                <h3 class="text-sm font-medium {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}text-gray-900{% else %}text-gray-500{% endif %}">Processing</h3>
+                                {% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' %}
+                                    <p class="text-sm text-gray-500">Your order is being prepared for shipment.</p>
+                                {% else %}
+                                    <p class="text-sm text-gray-500">Order will be processed soon</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Shipped -->
+                    <li class="relative flex items-start">
+                        <span class="h-8 w-8 rounded-full {% if order.status == 'shipped' or order.status == 'delivered' %}bg-green-500{% else %}bg-gray-200{% endif %} flex items-center justify-center ring-8 ring-white">
+                            {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% else %}
+                                <span class="h-3 w-3 bg-gray-400 rounded-full"></span>
+                            {% endif %}
+                        </span>
+                        <div class="min-w-0 flex-1 ml-4">
+                            <div>
+                                <h3 class="text-sm font-medium {% if order.status == 'shipped' or order.status == 'delivered' %}text-gray-900{% else %}text-gray-500{% endif %}">Shipped</h3>
+                                {% if order.status == 'shipped' or order.status == 'delivered' %}
+                                    <p class="text-sm text-gray-500">Your order is on its way!</p>
+                                    {% if tracking_number %}
+                                        <p class="text-sm text-gray-500">Tracking Number: {{ tracking_number }}</p>
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-sm text-gray-500">Will be shipped soon</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <!-- Delivered -->
+                    <li class="relative flex items-start">
+                        <span class="h-8 w-8 rounded-full {% if order.status == 'delivered' %}bg-green-500{% else %}bg-gray-200{% endif %} flex items-center justify-center ring-8 ring-white">
+                            {% if order.status == 'delivered' %}
+                                <svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            {% else %}
+                                <span class="h-3 w-3 bg-gray-400 rounded-full"></span>
+                            {% endif %}
+                        </span>
+                        <div class="min-w-0 flex-1 ml-4">
+                            <div>
+                                <h3 class="text-sm font-medium {% if order.status == 'delivered' %}text-gray-900{% else %}text-gray-500{% endif %}">Delivered</h3>
+                                {% if order.status == 'delivered' %}
+                                    <p class="text-sm text-gray-500">Your order has been delivered successfully!</p>
+                                {% else %}
+                                    <p class="text-sm text-gray-500">Estimated delivery date will be provided</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="px-6 py-6 bg-gray-50 border-t border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Shipping Address</h3>
+                    <div class="text-sm text-gray-600">
+                        <p class="font-medium">{{ order.shipping_name }}</p>
+                        <p>{{ order.shipping_address }}</p>
+                        <p>{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}</p>
+                        <p>{{ order.shipping_country }}</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Contact Information</h3>
+                    <div class="text-sm text-gray-600">
+                        <p>Email: {{ order.shipping_email }}</p>
+                        <p>Phone: {{ order.shipping_phone }}</p>
+                    </div>
+                    {% if tracking_number %}
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-900 mb-2">Tracking Information</h4>
+                            <p class="text-sm text-gray-600">Tracking Number: {{ tracking_number }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            <div class="flex space-x-3">
+                <a href="{% url 'orders:order_detail' order.order_number %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    View Order Details
+                </a>
+                <a href="{% url 'orders:order_list' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    All Orders
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
