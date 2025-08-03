@@ -1,0 +1,454 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_extras %}
+
+{% block title %}{{ product.name }} - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-6">
+        <ol class="flex items-center space-x-2 text-sm text-gray-600">
+            <li><a href="{% url 'home' %}" class="hover:text-blue-600">Home</a></li>
+            <li><span class="mx-2">/</span></li>
+            <li><a href="{% url 'products:product_list' %}" class="hover:text-blue-600">Products</a></li>
+            <li><span class="mx-2">/</span></li>
+            <li><a href="{% url 'products:product_list_by_category' product.category.slug %}" class="hover:text-blue-600">{{ product.category.name }}</a></li>
+            <li><span class="mx-2">/</span></li>
+            <li class="text-gray-900 font-medium">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <!-- Product Images -->
+        <div class="space-y-4">
+            <!-- Main Image -->
+            <div class="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                {% if product.images.first %}
+                    <img id="main-image" src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                         class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Thumbnail Images -->
+            {% if product.images.count > 1 %}
+            <div class="grid grid-cols-4 gap-2">
+                {% for image in product.images.all %}
+                <div class="aspect-square bg-gray-200 rounded overflow-hidden cursor-pointer hover:opacity-75"
+                     onclick="changeMainImage('{{ image.image.url }}')">
+                    <img src="{{ image.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Information -->
+        <div class="space-y-6">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+                <div class="flex items-center space-x-4 mb-4">
+                    {% if product.average_rating > 0 %}
+                    <div class="flex items-center">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= product.average_rating %}
+                                <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                            {% else %}
+                                <svg class="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="ml-2 text-sm text-gray-600">({{ product.reviews.count }} reviews)</span>
+                    </div>
+                    {% endif %}
+                    <span class="bg-gray-100 px-3 py-1 rounded-full text-sm text-gray-700">{{ product.get_condition_display }}</span>
+                </div>
+            </div>
+
+            <!-- Price -->
+            <div class="border-t border-b py-4">
+                <div class="flex items-center space-x-4">
+                    <span class="text-3xl font-bold text-blue-600">{{ product.price }} BDT</span>
+                    {% if product.original_price and product.original_price > product.price %}
+                        <span class="text-xl text-gray-500 line-through">{{ product.original_price }} BDT</span>
+                        <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium">
+                            Sale Price!
+                        </span>
+                    {% endif %}
+                </div>
+                {% if product.allow_bargaining %}
+                    <p class="text-green-600 text-sm mt-2">
+                        <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        Bargaining allowed! Make an offer below the listed price.
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Seller Information -->
+            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    {{ product.seller.first_name.0|default:product.seller.username.0 }}
+                </div>
+                <div>
+                    <p class="font-medium">
+                        <a href="{% url 'accounts:user_profile_public' product.seller.username %}" 
+                           class="text-blue-600 hover:underline">{{ product.seller.first_name }} {{ product.seller.last_name|default:product.seller.username }}</a>
+                    </p>
+                    <p class="text-sm text-gray-600">Seller since {{ product.seller.date_joined|date:"M Y" }}</p>
+                </div>
+            </div>
+
+            <!-- Stock Status -->
+            <div class="flex items-center space-x-2">
+                {% if product.is_in_stock %}
+                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                    <span class="text-green-600 font-medium">In Stock ({{ product.stock_quantity }} available)</span>
+                {% else %}
+                    <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                    <span class="text-red-600 font-medium">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            {% if user.is_authenticated and user != product.seller and product.is_in_stock %}
+            <div class="space-y-3">
+                <!-- Buy Now Button (Primary Action) -->
+                <button class="buy-now w-full bg-orange-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-orange-700 transition duration-200 flex items-center justify-center"
+                        data-product-id="{{ product.id }}" data-product-price="{{ product.price }}">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Buy Now
+                </button>
+                
+                <button class="add-to-cart w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 transition duration-200"
+                        data-product-id="{{ product.id }}">
+                    Add to Cart
+                </button>
+                
+                {% if product.allow_bargaining %}
+                <button class="bargain-button w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-green-700 transition duration-200"
+                        data-product-id="{{ product.id }}" data-original-price="{{ product.price }}">
+                    Make an Offer
+                </button>
+                {% endif %}
+                
+                <button class="toggle-wishlist w-full border-2 border-gray-300 text-gray-700 py-3 px-6 rounded-lg font-medium hover:border-red-500 hover:text-red-500 transition duration-200 {% if in_wishlist %}in-wishlist{% endif %}"
+                        data-product-id="{{ product.id }}">
+                    {% if in_wishlist %}
+                        <svg class="w-5 h-5 inline mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                        </svg>
+                        Remove from Wishlist
+                    {% else %}
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                        Add to Wishlist
+                    {% endif %}
+                </button>
+            </div>
+            {% elif not user.is_authenticated %}
+            <div class="space-y-3">
+                <a href="{% url 'accounts:login' %}" class="block w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium text-center hover:bg-blue-700 transition duration-200">
+                    Login to Purchase
+                </a>
+            </div>
+            {% elif user == product.seller %}
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p class="text-yellow-800 font-medium">This is your product listing.</p>
+                <div class="mt-2 space-x-2">
+                    <a href="{% url 'products:edit_product' product.slug %}" class="text-blue-600 hover:underline">Edit Product</a>
+                    <span class="text-gray-400">|</span>
+                    <a href="{% url 'products:delete_product' product.slug %}" class="text-red-600 hover:underline">Delete Product</a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Product Details Tabs -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                <button class="tab-button border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600" data-tab="description">
+                    Description
+                </button>
+                <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="specifications">
+                    Specifications
+                </button>
+                <button class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="reviews">
+                    Reviews ({{ product.reviews.count }})
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-6">
+            <!-- Description Tab -->
+            <div id="description-tab" class="tab-content">
+                <div class="prose max-w-none">
+                    {{ product.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Specifications Tab -->
+            <div id="specifications-tab" class="tab-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-3">
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Category:</span>
+                            <span>{{ product.category.name }}</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Condition:</span>
+                            <span>{{ product.get_condition_display }}</span>
+                        </div>
+                        {% if product.brand %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Brand:</span>
+                            <span>{{ product.brand }}</span>
+                        </div>
+                        {% endif %}
+                        {% if product.model %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Model:</span>
+                            <span>{{ product.model }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="space-y-3">
+                        {% if product.color %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Color:</span>
+                            <span>{{ product.color }}</span>
+                        </div>
+                        {% endif %}
+                        {% if product.size %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Size:</span>
+                            <span>{{ product.size }}</span>
+                        </div>
+                        {% endif %}
+                        {% if product.weight %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Weight:</span>
+                            <span>{{ product.weight }} kg</span>
+                        </div>
+                        {% endif %}
+                        {% if product.dimensions %}
+                        <div class="flex justify-between border-b pb-2">
+                            <span class="font-medium">Dimensions:</span>
+                            <span>{{ product.dimensions }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Tab -->
+            <div id="reviews-tab" class="tab-content hidden">
+                {% if reviews %}
+                    <div class="space-y-6">
+                        {% for review in reviews %}
+                        <div class="border-b border-gray-200 pb-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        {{ review.user.first_name.0|default:review.user.username.0 }}
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">{{ review.user.first_name }} {{ review.user.last_name|default:review.user.username }}</p>
+                                        <div class="flex items-center">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                    </svg>
+                                                {% else %}
+                                                    <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                                    </svg>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% if review.title %}
+                            <h4 class="font-semibold mb-2">{{ review.title }}</h4>
+                            {% endif %}
+                            <p class="text-gray-700">{{ review.review }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <p class="text-gray-500 mb-4">No reviews yet. Be the first to review this product!</p>
+                        {% if user.is_authenticated and user != product.seller %}
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                            Write a Review
+                        </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-12">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Related Products</h2>
+                    <p class="text-gray-600 mt-1">More products from {{ product.category.name }} category</p>
+                </div>
+                <a href="{% url 'products:product_list_by_category' product.category.slug %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                    View All in {{ product.category.name }}
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for related_product in related_products %}
+                <div class="bg-gray-50 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-200 border border-gray-200">
+                    <div class="h-48 bg-gray-200 flex items-center justify-center relative group">
+                        {% if related_product.images.first %}
+                            <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}" 
+                                 class="h-full w-full object-cover group-hover:scale-105 transition duration-200">
+                        {% else %}
+                            <div class="text-gray-400">
+                                <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Quick Actions Overlay -->
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <a href="{% url 'products:product_detail' related_product.slug %}" 
+                               class="bg-white text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition duration-200">
+                                View Details
+                            </a>
+                        </div>
+                        
+                        <!-- Condition Badge -->
+                        <div class="absolute top-2 left-2">
+                            <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                                {{ related_product.get_condition_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Discount Badge -->
+                        {% if related_product.original_price and related_product.original_price > related_product.price %}
+                        <div class="absolute top-2 right-2">
+                            <span class="bg-red-500 text-white text-xs px-2 py-1 rounded">
+                                {{ related_product.original_price|discount_percentage:related_product.price }}% OFF
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="p-4">
+                        <h3 class="font-semibold mb-2 text-gray-900">
+                            <a href="{% url 'products:product_detail' related_product.slug %}" 
+                               class="hover:text-blue-600 transition duration-200">{{ related_product.name|truncatechars:45 }}</a>
+                        </h3>
+                        
+                        <!-- Price Section -->
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-lg font-bold text-blue-600">{{ related_product.price }} BDT</span>
+                                {% if related_product.original_price and related_product.original_price > related_product.price %}
+                                    <span class="text-sm text-gray-500 line-through">{{ related_product.original_price }} BDT</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Rating and Stock -->
+                        <div class="flex items-center justify-between text-sm text-gray-600">
+                            <div class="flex items-center">
+                                {% if related_product.average_rating > 0 %}
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        <span>{{ related_product.average_rating|floatformat:1 }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-400">No ratings</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex items-center">
+                                {% if related_product.is_in_stock %}
+                                    <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                                    <span class="text-green-600">In Stock</span>
+                                {% else %}
+                                    <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                                    <span class="text-red-600">Out of Stock</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Bargaining Badge -->
+                        {% if related_product.allow_bargaining %}
+                        <div class="mt-2">
+                            <span class="inline-flex items-center text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                Bargaining
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- No More Products Message -->
+            <div class="mt-6 text-center">
+                <p class="text-gray-600 text-sm">
+                    Showing {{ related_products|length }} of products in {{ product.category.name }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Related Products -->
+    <div class="mt-12">
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Related Products</h2>
+            <div class="text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                </svg>
+                <p class="text-lg mb-2">No related products found</p>
+                <p class="text-sm mb-4">There are currently no other products in the {{ product.category.name }} category.</p>
+                <a href="{% url 'products:product_list' %}" 
+                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition duration-200">
+                    Browse All Products
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Include page-specific JavaScript -->
+<script src="{% static 'js/product-detail.js' %}"></script>
+{% endblock %}

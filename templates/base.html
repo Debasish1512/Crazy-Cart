@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CrazyCart - Your Ultimate Shopping Destination{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- CSRF Token for AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="{% url 'home' %}" class="text-2xl font-bold">CrazyCart</a>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-lg mx-8">
+                    <form method="GET" action="{% url 'products:product_search' %}" class="relative flex">
+                        <div class="relative flex-1">
+                            <input type="text" name="q" placeholder="Search products..." 
+                                   class="w-full px-4 py-2 pl-10 pr-4 text-gray-900 bg-white border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-r-lg border border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 transition duration-200">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'cart:cart' %}" class="hover:text-blue-200">
+                            Cart 
+                            {% if user.cart.total_items %}
+                                <span class="cart-count bg-red-500 text-white rounded-full px-2 py-1 text-xs">{{ user.cart.total_items }}</span>
+                            {% else %}
+                                <span class="cart-count bg-red-500 text-white rounded-full px-2 py-1 text-xs" style="display: none;">0</span>
+                            {% endif %}
+                        </a>
+                        <a href="{% url 'products:wishlist' %}" class="hover:text-blue-200">Wishlist</a>
+                        {% if user.user_type == 'seller' %}
+                            <a href="{% url 'accounts:seller_dashboard' %}" class="hover:text-blue-200">Dashboard</a>
+                        {% endif %}
+                        {% if user.user_type == 'admin' %}
+                            <a href="{% url 'accounts:admin_dashboard' %}" class="hover:text-blue-200">Admin</a>
+                        {% endif %}
+                        <div class="dropdown relative">
+                            <button class="dropdown-trigger hover:text-blue-200">{{ user.get_full_name|default:user.username }}</button>
+                            <div class="dropdown-menu absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden">
+                                <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
+                                <a href="{% url 'bargaining:add_money' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="inline h-4 w-4 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                                    </svg>
+                                    Add Money to Wallet
+                                </a>
+                                <a href="{% url 'orders:order_list' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Orders</a>
+                                <a href="{% url 'bargaining:bargain_requests' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Bargains</a>
+                                <a href="{% url 'accounts:logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+                            </div>
+                        </div>
+                        <a href="{% url 'bargaining:add_money' %}" class="text-yellow-300 hover:text-yellow-100 flex items-center">
+                            <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                            ৳{{ user.crazycart_balance }}
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="hover:text-blue-200">Login</a>
+                        <a href="{% url 'accounts:signup' %}" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} p-4 mb-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">CrazyCart</h3>
+                    <p class="text-gray-400">Your ultimate destination for online shopping with bargaining features.</p>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'home' %}" class="text-gray-400 hover:text-white">Home</a></li>
+                        <li><a href="{% url 'products:product_list' %}" class="text-gray-400 hover:text-white">Products</a></li>
+                        <li><a href="{% url 'products:about_us' %}" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Account</h4>
+                    <ul class="space-y-2">
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-white">My Profile</a></li>
+                            <li><a href="{% url 'orders:order_list' %}" class="text-gray-400 hover:text-white">My Orders</a></li>
+                            <li><a href="{% url 'products:wishlist' %}" class="text-gray-400 hover:text-white">Wishlist</a></li>
+                        {% else %}
+                            <li><a href="{% url 'accounts:login' %}" class="text-gray-400 hover:text-white">Login</a></li>
+                            <li><a href="{% url 'accounts:signup' %}" class="text-gray-400 hover:text-white">Sign Up</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-md font-semibold mb-4">Help</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Shipping Info</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Returns</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 CrazyCart. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Modules -->
+    <!-- Load modules in order: common utilities first, then specific functionality -->
+    <script src="{% static 'js/common.js' %}"></script>
+    <script src="{% static 'js/ui.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
+    <script src="{% static 'js/wishlist.js' %}"></script>
+    <script src="{% static 'js/product.js' %}"></script>
+    <script src="{% static 'js/search.js' %}"></script>
+    <script src="{% static 'js/bargaining.js' %}"></script>
+    <script src="{% static 'js/main-new.js' %}"></script>
+    
+    <!-- Legacy fallback - remove this line after testing -->
+    <!-- <script src="{% static 'js/main.js' %}"></script> -->
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

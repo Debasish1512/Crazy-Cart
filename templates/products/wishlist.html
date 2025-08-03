@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-bold">My Wishlist</h1>
+        <p class="text-gray-600">{{ page_obj.paginator.count }} items</p>
+    </div>
+    
+    {% if page_obj %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for wishlist_item in page_obj %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <!-- Product Image -->
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                    {% if wishlist_item.product.images.first %}
+                        <img src="{{ wishlist_item.product.images.first.image.url }}" 
+                             alt="{{ wishlist_item.product.name }}" 
+                             class="h-full w-full object-cover">
+                    {% else %}
+                        <div class="text-gray-400">
+                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Product Info -->
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg mb-2">
+                        <a href="{% url 'products:product_detail' wishlist_item.product.slug %}" 
+                           class="hover:text-blue-600">{{ wishlist_item.product.name }}</a>
+                    </h3>
+                    
+                    <p class="text-gray-600 text-sm mb-2">{{ wishlist_item.product.description|truncatewords:10 }}</p>
+                    
+                    <!-- Price -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <span class="text-xl font-bold text-blue-600">{{ wishlist_item.product.price }} BDT</span>
+                            {% if wishlist_item.product.original_price and wishlist_item.product.original_price > wishlist_item.product.price %}
+                                <span class="text-sm text-gray-500 line-through ml-2">{{ wishlist_item.product.original_price }} BDT</span>
+                            {% endif %}
+                        </div>
+                        {% if wishlist_item.product.allow_bargaining %}
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Bargainable</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Seller and Condition -->
+                    <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
+                        <span>by <a href="{% url 'accounts:user_profile_public' wishlist_item.product.seller.username %}" 
+                                  class="text-blue-600 hover:underline">{{ wishlist_item.product.seller.username }}</a></span>
+                        <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ wishlist_item.product.get_condition_display }}</span>
+                    </div>
+                    
+                    <!-- Stock Status -->
+                    <div class="flex items-center mb-3">
+                        {% if wishlist_item.product.is_in_stock %}
+                            <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                            <span class="text-green-600 text-sm">In Stock</span>
+                        {% else %}
+                            <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                            <span class="text-red-600 text-sm">Out of Stock</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-2">
+                        {% if wishlist_item.product.is_in_stock and user != wishlist_item.product.seller %}
+                            <button class="add-to-cart flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
+                                    data-product-id="{{ wishlist_item.product.id }}">
+                                Add to Cart
+                            </button>
+                        {% else %}
+                            <a href="{% url 'products:product_detail' wishlist_item.product.slug %}" 
+                               class="flex-1 bg-gray-600 text-white py-2 px-3 rounded text-sm text-center hover:bg-gray-700">
+                                View Details
+                            </a>
+                        {% endif %}
+                        
+                        <button class="remove-from-wishlist bg-red-600 text-white py-2 px-3 rounded text-sm hover:bg-red-700"
+                                data-product-id="{{ wishlist_item.product.id }}">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Added Date -->
+                    <p class="text-xs text-gray-500 mt-2">Added {{ wishlist_item.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="mt-8 flex justify-center">
+            <nav class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Previous</a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 bg-blue-600 text-white border border-blue-600 rounded">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" 
+                           class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Next</a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12">
+            <div class="mb-4">
+                <svg class="w-16 h-16 text-gray-400 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-600 mb-4">Your wishlist is empty</h3>
+            <p class="text-gray-500 mb-6">Start adding products you love to your wishlist!</p>
+            <a href="{% url 'products:product_list' %}" 
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                Browse Products
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove from wishlist functionality
+    const removeButtons = document.querySelectorAll('.remove-from-wishlist');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            removeFromWishlist(productId, this);
+        });
+    });
+    
+    // Function to remove from wishlist
+    function removeFromWishlist(productId, button) {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.querySelector('meta[name=csrf-token]')?.getAttribute('content');
+        
+        if (!token) {
+            showAlert('CSRF token not found. Please refresh the page.', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('product_id', productId);
+
+        fetch('/products/wishlist/remove/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': token,
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove the card from the page
+                const card = button.closest('.bg-white');
+                card.remove();
+                
+                // Update counter if exists
+                const counter = document.querySelector('.text-gray-600');
+                if (counter) {
+                    const currentCount = parseInt(counter.textContent.match(/\d+/)[0]);
+                    const newCount = currentCount - 1;
+                    counter.textContent = `${newCount} items`;
+                }
+                
+                // Show empty state if no items left
+                const grid = document.querySelector('.grid');
+                if (grid && grid.children.length === 0) {
+                    location.reload();
+                }
+                
+                if (window.CrazyCartJS) {
+                    window.CrazyCartJS.showNotification('Removed from wishlist!', 'success');
+                } else {
+                    showAlert('Removed from wishlist!', 'success');
+                }
+            } else {
+                if (window.CrazyCartJS) {
+                    window.CrazyCartJS.showNotification(data.message || 'Error removing from wishlist', 'error');
+                } else {
+                    showAlert(data.message || 'Error removing from wishlist', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (window.CrazyCartJS) {
+                window.CrazyCartJS.showNotification('Error removing from wishlist', 'error');
+            } else {
+                showAlert('Error removing from wishlist', 'error');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

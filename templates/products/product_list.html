@@ -1,0 +1,221 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Sidebar Filters -->
+        <div class="lg:w-1/4">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Filter Products</h3>
+                
+                <!-- Categories -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-2">Categories</h4>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{% url 'products:product_list' %}" 
+                               class="text-sm text-gray-600 hover:text-blue-600 {% if not current_category %}font-medium text-blue-600{% endif %}">
+                                All Categories
+                            </a>
+                        </li>
+                        {% for category in categories %}
+                        <li>
+                            <a href="{% url 'products:product_list_by_category' category.slug %}" 
+                               class="text-sm text-gray-600 hover:text-blue-600 {% if current_category == category %}font-medium text-blue-600{% endif %}">
+                                {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                
+                <!-- Price Range -->
+                <form method="GET" class="space-y-4">
+                    <div>
+                        <h4 class="font-medium mb-2">Price Range</h4>
+                        <div class="flex space-x-2">
+                            <input type="number" name="min_price" placeholder="Min" step="0.01" 
+                                   class="w-full p-2 border border-gray-300 rounded text-sm">
+                            <input type="number" name="max_price" placeholder="Max" step="0.01"
+                                   class="w-full p-2 border border-gray-300 rounded text-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Condition -->
+                    <div>
+                        <h4 class="font-medium mb-2">Condition</h4>
+                        <select name="condition" class="w-full p-2 border border-gray-300 rounded text-sm">
+                            <option value="">All Conditions</option>
+                            <option value="new">New</option>
+                            <option value="used_like_new">Used - Like New</option>
+                            <option value="used_good">Used - Good</option>
+                            <option value="used_fair">Used - Fair</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Products Grid -->
+        <div class="lg:w-3/4">
+            <!-- Search and Sort Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    {% if query %}
+                        <h2 class="text-xl font-semibold">Search results for "{{ query }}"</h2>
+                        <p class="text-gray-600">{{ page_obj.paginator.count }} products found</p>
+                    {% elif current_category %}
+                        <h2 class="text-xl font-semibold">{{ current_category.name }}</h2>
+                        <p class="text-gray-600">{{ page_obj.paginator.count }} products</p>
+                    {% else %}
+                        <h2 class="text-xl font-semibold">All Products</h2>
+                        <p class="text-gray-600">{{ page_obj.paginator.count }} products</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Sort Options -->
+                <form method="GET" class="flex items-center space-x-2">
+                    {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                    <label class="text-sm font-medium">Sort by:</label>
+                    <select name="sort" onchange="this.form.submit()" class="p-2 border border-gray-300 rounded text-sm">
+                        <option value="-created_at" {% if sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Oldest First</option>
+                        <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="-price" {% if sort_by == '-price' %}selected{% endif %}>Price: High to Low</option>
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name: A to Z</option>
+                        <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name: Z to A</option>
+                    </select>
+                </form>
+            </div>
+            
+            <!-- Products Grid -->
+            {% if page_obj %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for product in page_obj %}
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden product-card">
+                        <!-- Product Image -->
+                        <div class="h-48 bg-gray-200 flex items-center justify-center">
+                            {% if product.images.first %}
+                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                     class="h-full w-full object-cover">
+                            {% else %}
+                                <div class="text-gray-400">
+                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="p-4">
+                            <h3 class="font-semibold text-lg mb-2">
+                                <a href="{% url 'products:product_detail' product.slug %}" 
+                                   class="hover:text-blue-600">{{ product.name }}</a>
+                            </h3>
+                            
+                            <p class="text-gray-600 text-sm mb-2">{{ product.description|truncatewords:15 }}</p>
+                            
+                            <!-- Price -->
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <span class="text-xl font-bold text-blue-600">{{ product.price }} BDT</span>
+                                    {% if product.original_price and product.original_price > product.price %}
+                                        <span class="text-sm text-gray-500 line-through ml-2">{{ product.original_price }} BDT</span>
+                                    {% endif %}
+                                </div>
+                                {% if product.allow_bargaining %}
+                                    <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">Bargainable</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Seller and Condition -->
+                            <div class="flex justify-between items-center text-sm text-gray-600 mb-3">
+                                <span>by <a href="{% url 'accounts:user_profile_public' product.seller.username %}" 
+                                          class="text-blue-600 hover:underline">{{ product.seller.username }}</a></span>
+                                <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ product.get_condition_display }}</span>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="space-y-2">
+                                {% if user.is_authenticated and user != product.seller and product.is_in_stock %}
+                                    <!-- Buy Now Button (Primary) -->
+                                    <button class="buy-now w-full bg-orange-600 text-white py-2 px-3 rounded text-sm hover:bg-orange-700 flex items-center justify-center"
+                                            data-product-id="{{ product.id }}">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                        Buy Now
+                                    </button>
+                                    
+                                    <!-- Secondary Actions -->
+                                    <div class="flex space-x-2">
+                                        <button class="add-to-cart flex-1 bg-blue-600 text-white py-2 px-3 rounded text-sm hover:bg-blue-700"
+                                                data-product-id="{{ product.id }}">
+                                            Add to Cart
+                                        </button>
+                                        {% if product.allow_bargaining %}
+                                            <button class="bargain-button bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700"
+                                                    data-product-id="{{ product.id }}" data-original-price="{{ product.price }}">
+                                                Make Offer
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                {% elif not product.is_in_stock %}
+                                    <div class="w-full bg-gray-400 text-white py-2 px-3 rounded text-sm text-center cursor-not-allowed">
+                                        Out of Stock
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'products:product_detail' product.slug %}" 
+                                       class="block w-full bg-gray-600 text-white py-2 px-3 rounded text-sm text-center hover:bg-gray-700">
+                                        View Details
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" 
+                               class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Previous</a>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="px-3 py-2 bg-blue-600 text-white border border-blue-600 rounded">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" 
+                                   class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}" 
+                               class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50">Next</a>
+                        {% endif %}
+                    </nav>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-12">
+                    <h3 class="text-xl font-semibold text-gray-600 mb-4">No products found</h3>
+                    <p class="text-gray-500">Try adjusting your search or filter criteria.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

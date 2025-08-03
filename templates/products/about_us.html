@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - CrazyCart{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <section class="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+        <h1 class="text-4xl font-semibold text-center text-blue-700 mb-6">About CrazyCart</h1>
+        <p class="text-lg text-gray-700 mb-6">
+            CrazyCart is an innovative e-commerce platform that offers a seamless online shopping experience. We are dedicated to providing our customers with the best products and services.
+        </p>
+        
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Meet Our Development Team</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg text-center shadow-md">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-blue-300">
+                    <img src="{% static 'images/shifat.jpg' %}" 
+                         alt="Shifat Ahmed" 
+                         class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-1">Shifat Ahmed</h3>
+                <p class="text-blue-600 text-sm mb-2">Lead Full-Stack Developer</p>
+                <p class="text-gray-600 text-xs">Expert in Django, Python, and modern web technologies. Specializes in backend architecture and database design.</p>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg text-center shadow-md">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-green-300">
+                    <img src="{% static 'images/deba.jpg' %}" 
+                         alt="Debasish Mondal" 
+                         class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-1">Debasish Mondal</h3>
+                <p class="text-green-600 text-sm mb-2">Frontend Developer</p>
+                <p class="text-gray-600 text-xs">UI/UX specialist focused on creating responsive and intuitive user interfaces using modern CSS frameworks and JavaScript.</p>
+            </div>
+            
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-lg text-center shadow-md">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-300">
+                    <img src="{% static 'images/shimul.jpg' %}" 
+                         alt="Safiul Islam" 
+                         class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-1">Safiul Islam</h3>
+                <p class="text-purple-600 text-sm mb-2">Frontend Developer</p>
+                <p class="text-gray-600 text-xs">Database optimization expert and API development specialist. Handles payment integrations and security implementations.</p>
+            </div>
+            
+            <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg text-center shadow-md">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-orange-300">
+                    <img src="{% static 'images/mehedi.jpg' %}" 
+                         alt="Mehedi Hassan" 
+                         class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-1">Mehedi Hassan</h3>
+                <p class="text-orange-600 text-sm mb-2">Jr Backend Developer</p>
+                <p class="text-gray-600 text-xs">Infrastructure and deployment specialist. Manages cloud services, CI/CD pipelines, and system scalability solutions.</p>
+            </div>
+        </div>
+        
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Our Features</h2>
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-blue-700 mb-2">🛍️ Product Listings</h3>
+                <p class="text-gray-700">Comprehensive product displays with images, descriptions, prices, and options like size, color, etc.</p>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-green-700 mb-2">🛒 Shopping Cart</h3>
+                <p class="text-gray-700">Easy-to-use cart where users can add products they wish to buy before checking out.</p>
+            </div>
+            
+            <div class="bg-purple-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-purple-700 mb-2">💳 Secure Payments</h3>
+                <p class="text-gray-700">Multiple payment options including wallet system for secure and convenient transactions.</p>
+            </div>
+            
+            <div class="bg-orange-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-orange-700 mb-2">📦 Order Management</h3>
+                <p class="text-gray-700">Complete order tracking system allowing users to monitor their purchases in real-time.</p>
+            </div>
+            
+            <div class="bg-red-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-red-700 mb-2">👤 User Accounts</h3>
+                <p class="text-gray-700">Personal account management for details, orders, wishlists, and seller profiles.</p>
+            </div>
+            
+            <div class="bg-indigo-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-indigo-700 mb-2">🔍 Smart Search</h3>
+                <p class="text-gray-700">Advanced search and filter options by category, price range, ratings, and more.</p>
+            </div>
+        </div>
+        
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Why Choose CrazyCart?</h2>
+        <ul class="list-disc pl-6 space-y-3 text-gray-700 text-lg mb-6">
+            <li><strong>Wide Selection:</strong> Thousands of products across multiple categories</li>
+            <li><strong>Seller Platform:</strong> Anyone can become a seller and list their products</li>
+            <li><strong>Bargaining System:</strong> Unique feature allowing price negotiations between buyers and sellers</li>
+            <li><strong>Responsive Design:</strong> Seamless experience on both mobile and desktop devices</li>
+            <li><strong>Secure Transactions:</strong> Safe and encrypted payment processing</li>
+            <li><strong>24/7 Support:</strong> Customer service available round the clock</li>
+        </ul>
+        
+        <div class="text-center bg-blue-600 text-white p-6 rounded-lg">
+            <h3 class="text-xl font-semibold mb-2">Join the CrazyCart Family Today!</h3>
+            <p class="mb-4">Start shopping or become a seller and grow your business with us.</p>
+            <div class="space-x-4">
+                <a href="{% url 'products:product_list' %}" class="bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition duration-300">
+                    Start Shopping
+                </a>
+                <a href="{% url 'accounts:signup' %}" class="bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-900 transition duration-300">
+                    Become a Seller
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
